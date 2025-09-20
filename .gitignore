@@ -1,0 +1,22 @@
+# Build artifacts
+examples/demo
+examples/source_location_demo
+tests/basic_test
+tests/basic_test_clang
+
+# Compiler outputs
+*.o
+*.obj
+*.exe
+*.out
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
