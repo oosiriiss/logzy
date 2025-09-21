@@ -1,0 +1,63 @@
+#pragma once
+#include <cxxabi.h>
+
+#include <format>
+#include <variant>
+
+// TODO :: Helpful message if formatter is not found?
+
+template <typename T>
+concept isFormattable = []() {
+  constexpr bool ok = requires(T &value, std::format_context ctx) {
+    std::formatter<std::remove_cvref_t<T>>().format(value, ctx);
+  };
+
+  static_assert(ok, "Not formattable type discovered");
+
+  return ok;
+}();
+
+template <typename T>
+constexpr std::string typeName() {
+  int status = -1;
+  auto demangledName = std::string(
+      abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status));
+  if (status != 0) {
+    return "Unknown";
+  }
+  return demangledName;
+}
+
+template <typename T>
+  requires isFormattable<T>
+struct std::formatter<std::optional<T>> {  // NOLINT
+
+  constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
+
+  auto format(const std::optional<T> &opt, std::format_context &ctx) const {
+    if (opt) {
+      return std::format_to(ctx.out(), "{}", *opt);
+    }
+    return std::format_to(ctx.out(), "{}", "std::optional(nullopt)");
+  }
+};
+
+template <typename... Ts>
+  requires(isFormattable<Ts> && ...)
+struct std::formatter<std::variant<Ts...>> {  // NOLINT
+
+  constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
+
+  auto format(const std::variant<Ts...> &variant,
+              std::format_context &ctx) const {
+    const auto variantIndex = variant.index();
+    return std::visit(
+        [&ctx, variantIndex](const auto &entry) {
+          using T = std::decay_t<decltype(entry)>;
+          return std::format_to(ctx.out(),
+                                "std::variant(value={}, idx={}, type={})",
+                                entry, variantIndex, typeName<T>());
+        },
+        variant);
+  }
+};

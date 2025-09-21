@@ -1,15 +1,13 @@
 #include "logzy/logzy.hpp"
 
-#include <iostream>
+#include <format>
 #include <string>
 #include <string_view>
-#include <source_location>
-#include <format>
+#include <utility>
 
 namespace {
-  using logzy::LogLevel;
-
-  constexpr std::string_view ToString(const LogLevel level) {
+  using logzy::internal::LogLevel;
+  constexpr std::string_view toString(const LogLevel level) {
     switch (level) {
       case LogLevel::Info:
         return "INFO";
@@ -22,13 +20,15 @@ namespace {
       case LogLevel::Critical:
         return "Critical";
     }
+    std::unreachable();
   }
 
   // Returns a string that will allow the output of a colored text to the
   // terminal.
   // Ansi Color codes
   // https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
-  constexpr std::string_view TextColor(const LogLevel level) {
+  constexpr std::string_view textColor(const LogLevel level) {
+    // TODO :: Add more support for colored output
     const auto fgRedBgBlack = std::string_view("\033[31;40m");
     const auto fgCyanBgBlack = std::string_view("\033[36;40m");
     const auto fgYellowBgBlack = std::string_view("\033[33;40m");
@@ -47,29 +47,21 @@ namespace {
       case LogLevel::Critical:
         return fgBlackBgRed;
     }
+
+    std::unreachable();
   }
 
-  constexpr std::string_view TextColorEnd() {
+  constexpr std::string_view textColorEnd() {
     const auto ansiResetcode = std::string_view("\033[39;49m");
     return ansiResetcode;
   }
 
-  constexpr std::string FormatLogLevel(const LogLevel level) {
-    const std::string_view levelStr = ToString(level);
-    const std::string_view color = TextColor(level);
-    const std::string_view colorEnd = TextColorEnd();
-
-    return std::format("[{}{}{}]", color, levelStr, colorEnd);
-  }
 }  // namespace
 
-namespace logzy {
-  void Log(LogLevel level, const std::string &message,
-           const std::source_location &sourceLoc) {
-    const std::string formattedLevel = FormatLogLevel(level);
-    // prepend file:line, then append fmt
-    std::cout << (std::format("{}:{}:{} | {}", formattedLevel,
-                              sourceLoc.file_name(), sourceLoc.line(), message))
-              << '\n';
-  }
-}  // namespace logzy
+std::string logzy::internal::formatLogLevel(const LogLevel level) {
+  const std::string_view levelStr = toString(level);
+  const std::string_view color = textColor(level);
+  const std::string_view colorEnd = textColorEnd();
+
+  return std::format("[{}{}{}]", color, levelStr, colorEnd);
+}

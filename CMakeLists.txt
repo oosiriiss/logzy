@@ -18,6 +18,7 @@ include(cmake/variables.cmake)
 add_library(
     logzy_logzy
     source/logzy.cpp
+    include/logzy/formatters.hpp
     include/logzy/logzy.hpp
 )
 add_library(logzy::logzy ALIAS logzy_logzy)
@@ -56,7 +57,7 @@ target_include_directories(
     "\$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/export>"
 )
 
-target_compile_features(logzy_logzy PUBLIC cxx_std_20)
+target_compile_features(logzy_logzy PUBLIC cxx_std_23)
 
 # ---- Install rules ----
 

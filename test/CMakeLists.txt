@@ -16,7 +16,7 @@ endif()
 
 add_executable(logzy_test source/logzy_test.cpp)
 target_link_libraries(logzy_test PRIVATE logzy::logzy)
-target_compile_features(logzy_test PRIVATE cxx_std_20)
+target_compile_features(logzy_test PRIVATE cxx_std_23)
 
 # add_test(NAME logzy_test COMMAND logzy_test)
 
