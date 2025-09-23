@@ -8,13 +8,13 @@
 
 template <typename T>
 concept isFormattable = []() {
-  constexpr bool ok = requires(T &value, std::format_context ctx) {
+  constexpr bool isValid = requires(T &value, std::format_context ctx) {
     std::formatter<std::remove_cvref_t<T>>().format(value, ctx);
   };
 
-  static_assert(ok, "Not formattable type discovered");
+  static_assert(isValid, "Not formattable type discovered");
 
-  return ok;
+  return isValid;
 }();
 
 template <typename T>

@@ -9,13 +9,8 @@
 #include "logzy/formatters.hpp"
 #include "logzy/logzy_export.hpp"
 
-#ifndef LOGZY_EXPORT
-#define LOGZY_EXPORT
-#define LOGZY_NO_EXPORT
-#endif
-
 namespace logzy {
-  LOGZY_NO_EXPORT namespace internal {
+  namespace internal {
     LOGZY_NO_EXPORT enum class LogLevel : std::uint8_t {
       Info,
       Warning,
@@ -28,13 +23,16 @@ namespace logzy {
 
     template <typename... Args>
     LOGZY_NO_EXPORT void log(LogLevel level,
-                             const std::source_location &sourceLoc,
+                             const std::source_location sourceLoc,
                              std::format_string<Args...> fmt, Args &&...args) {
       auto formattedLevel = formatLogLevel(level);
       auto message = std::format(fmt, std::forward<Args>(args)...);
-      // prepend file:line, then append fmt
-      std::println("{}:{}:{} | {}", formattedLevel, sourceLoc.file_name(),
-                   sourceLoc.line(), message);
+
+      auto fullPath = std::string(sourceLoc.file_name());
+
+      std::println("{} {}({}:{}) | {}", formattedLevel,
+                   fullPath.substr(fullPath.find_last_of('/') + 1),
+                   sourceLoc.line(), sourceLoc.column(), message);
     }
   }  // namespace internal
 

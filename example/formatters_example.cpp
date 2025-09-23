@@ -1,7 +1,6 @@
 #include <optional>
 #include <variant>
 
-#include "logzy/formatters.hpp"
 #include "logzy/logzy.hpp"
 
 struct SomeUnformattableStruct {
@@ -9,7 +8,7 @@ struct SomeUnformattableStruct {
   int y;
 };
 
-int main() {
+int main() { // NOLINT(bugprone-exception-escape)
   const std::optional<int> withValue = std::optional(1);
   const std::optional<int> noValue = std::nullopt;
 
@@ -26,7 +25,7 @@ int main() {
   logzy::info("This is std::variant<int,bool,float> with float value: {}", var);
 
   using UnformattableVariant = std::variant<int, SomeUnformattableStruct>;
-  const UnformattableVariant var2 = UnformattableVariant(0);
+  [[maybe_unused]] const UnformattableVariant var2 = UnformattableVariant(0);
 
   // This will not compile
   // logzy::critical("Does pritning unformattable clas work {}", var2);
