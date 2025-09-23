@@ -1,6 +1,7 @@
 #include "logzy/logzy.hpp"
 
 int main() {  // NOLINT(bugprone-exception-escape)
+
   logzy::info("This is Info with id {}", 1);
   logzy::warn("This is Warn with id {}", 2);
   logzy::error("This is Error with id {}", 3);

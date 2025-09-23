@@ -22,52 +22,77 @@ namespace logzy {
     std::string formatLogLevel(LogLevel level);
 
     template <typename... Args>
-    LOGZY_NO_EXPORT void log(LogLevel level,
-                             const std::source_location sourceLoc,
-                             std::format_string<Args...> fmt, Args &&...args) {
+    LOGZY_NO_EXPORT inline void log(LogLevel level,
+                                    const std::source_location sourceLoc,
+                                    std::format_string<Args...> fmt,
+                                    Args &&...args) {
       auto formattedLevel = formatLogLevel(level);
       auto message = std::format(fmt, std::forward<Args>(args)...);
 
-      auto fullPath = std::string(sourceLoc.file_name());
+      // FIXME :: Possible slowdown?
+      const auto f = std::string_view(sourceLoc.file_name());
+      const auto filename = f.substr(f.find_last_of('/') + 1);
 
-      std::println("{} {}({}:{}) | {}", formattedLevel,
-                   fullPath.substr(fullPath.find_last_of('/') + 1),
+      std::println("{} {}({}:{}) | {}", formattedLevel, filename,
                    sourceLoc.line(), sourceLoc.column(), message);
     }
   }  // namespace internal
 
   template <typename... Args>
-  LOGZY_EXPORT inline void info(std::format_string<Args...> fmt, Args... args) {
-    internal::log(internal::LogLevel::Info, std::source_location::current(),
-                  fmt, std::forward<Args>(args)...);
-  }
+  LOGZY_EXPORT struct info {                             // NOLINT
+    info(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
+         std::source_location loc = std::source_location::current()) {
+      internal::log(internal::LogLevel::Info, loc, fmt,
+                    std::forward<Args>(ts)...);
+    }
+  };
+  template <typename... Args>
+  info(std::format_string<Args...> fmt, Args &&...args) -> info<Args...>;
 
   template <typename... Args>
-  LOGZY_EXPORT inline void warn(std::format_string<Args...> fmt, Args... args) {
-    internal::log(internal::LogLevel::Warning, std::source_location::current(),
-                  fmt, std::forward<Args>(args)...);
-  }
+  LOGZY_EXPORT struct warn {                             // NOLINT
+    warn(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
+         std::source_location loc = std::source_location::current()) {
+      internal::log(internal::LogLevel::Warning, loc, fmt,
+                    std::forward<Args>(ts)...);
+    }
+  };
+  template <typename... Args>
+  warn(std::format_string<Args...> fmt, Args &&...args) -> warn<Args...>;
 
   template <typename... Args>
-  LOGZY_EXPORT inline void error(std::format_string<Args...> fmt,
-                                 Args... args) {
-    internal::log(internal::LogLevel::Error, std::source_location::current(),
-                  fmt, std::forward<Args>(args)...);
-  }
+  LOGZY_EXPORT struct error {                             // NOLINT
+    error(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
+          std::source_location loc = std::source_location::current()) {
+      internal::log(internal::LogLevel::Error, loc, fmt,
+                    std::forward<Args>(ts)...);
+    }
+  };
+  template <typename... Args>
+  error(std::format_string<Args...> fmt, Args &&...args) -> error<Args...>;
+
+  template <typename... Args>
+  LOGZY_EXPORT struct critical {                             // NOLINT
+    critical(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
+             std::source_location loc = std::source_location::current()) {
+      internal::log(internal::LogLevel::Critical, loc, fmt,
+                    std::forward<Args>(ts)...);
+    }
+  };
+  template <typename... Args>
+  critical(std::format_string<Args...> fmt, Args &&...args)
+      -> critical<Args...>;
 
   // TODO :: Make this apply only in debug builds
   template <typename... Args>
-  LOGZY_EXPORT inline void debug(std::format_string<Args...> fmt,
-                                 Args... args) {
-    internal::log(internal::LogLevel::Debug, std::source_location::current(),
-                  fmt, std::forward<Args>(args)...);
-  }
-
+  LOGZY_EXPORT struct debug {                             // NOLINT
+    debug(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
+          std::source_location loc = std::source_location::current()) {
+      internal::log(internal::LogLevel::Debug, loc, fmt,
+                    std::forward<Args>(ts)...);
+    }
+  };
   template <typename... Args>
-  LOGZY_EXPORT inline void critical(std::format_string<Args...> fmt,
-                                    Args... args) {
-    internal::log(internal::LogLevel::Critical, std::source_location::current(),
-                  fmt, std::forward<Args>(args)...);
-  }
+  debug(std::format_string<Args...> fmt, Args &&...args) -> debug<Args...>;
 
 }  // namespace logzy
