@@ -13,6 +13,17 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
+
+include(FetchContent)
+FetchContent_Declare(
+   rainbowcpp
+   GIT_REPOSITORY https://github.com/oosiriiss/rainbowcpp
+   GIT_TAG 0.1
+)
+
+FetchContent_MakeAvailable(rainbowcpp)
+
+
 # ---- Declare library ----
 
 add_library(
@@ -22,6 +33,8 @@ add_library(
     include/logzy/logzy.hpp
 )
 add_library(logzy::logzy ALIAS logzy_logzy)
+
+target_link_libraries(logzy_logzy PUBLIC rainbowcpp::rainbowcpp)
 
 include(GenerateExportHeader)
 generate_export_header(

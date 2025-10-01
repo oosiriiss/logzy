@@ -9,6 +9,9 @@
 #include "logzy/formatters.hpp"
 #include "logzy/logzy_export.hpp"
 
+#include "rainbowcpp/colors.hpp"
+#include "rainbowcpp/rainbowcpp.hpp"
+
 namespace logzy {
   namespace internal {
     LOGZY_NO_EXPORT enum class LogLevel : std::uint8_t {
@@ -19,7 +22,48 @@ namespace logzy {
       Critical
     };
 
-    std::string formatLogLevel(LogLevel level);
+    constexpr std::string_view toString(const LogLevel level) {
+      switch (level) {
+        case LogLevel::Info:
+          return "INFO";
+        case LogLevel::Warning:
+          return "WARNING";
+        case LogLevel::Error:
+          return "ERROR";
+        case LogLevel::Debug:
+          return "DEBUG";
+        case LogLevel::Critical:
+          return "CRITICAL";
+      }
+    }
+
+    constexpr std::string_view textColor(const LogLevel level) {
+      using Fg = rainbow::colors::bit4::Foreground;
+      using Bg = rainbow::colors::bit4::Background;
+
+      switch (level) {
+        case LogLevel::Debug:
+          return rainbow::color<Fg::Gray, Bg::Black>();
+        case LogLevel::Info:
+          return rainbow::color<Fg::Blue, Bg::Black>();
+        case LogLevel::Warning:
+          return rainbow::color<Fg::Yellow, Bg::Black>();
+        case LogLevel::Error:
+          return rainbow::color<Fg::Red, Bg::Black>();
+        case LogLevel::Critical:
+          return rainbow::color<Fg::Black, Bg::Red>();
+      }
+
+      std::unreachable();
+    }
+
+    constexpr std::string formatLogLevel(const LogLevel level) {
+      const std::string_view levelStr = toString(level);
+      const std::string_view color = textColor(level);
+      constexpr std::string_view reset = rainbow::reset();
+
+      return std::format("{}[{}]{}", color, levelStr, reset);
+    }
 
     template <typename... Args>
     LOGZY_NO_EXPORT inline void log(LogLevel level,
