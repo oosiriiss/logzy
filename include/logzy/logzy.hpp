@@ -35,6 +35,7 @@ namespace logzy {
         case LogLevel::Critical:
           return "CRITICAL";
       }
+   std::unreachable();
     }
 
     constexpr std::string_view textColor(const LogLevel level) {
@@ -57,7 +58,7 @@ namespace logzy {
       std::unreachable();
     }
 
-    constexpr std::string formatLogLevel(const LogLevel level) {
+    LOGZY_EXPORT std::string formatLogLevel(const LogLevel level) {
       const std::string_view levelStr = toString(level);
       const std::string_view color = textColor(level);
       constexpr std::string_view reset = rainbow::reset();
@@ -91,7 +92,7 @@ namespace logzy {
     }
   };
   template <typename... Args>
-  info(std::format_string<Args...> fmt, Args &&...args) -> info<Args...>;
+  LOGZY_EXPORT info(std::format_string<Args...> fmt, Args &&...args) -> info<Args...>;
 
   template <typename... Args>
   LOGZY_EXPORT struct warn {                             // NOLINT
@@ -102,7 +103,7 @@ namespace logzy {
     }
   };
   template <typename... Args>
-  warn(std::format_string<Args...> fmt, Args &&...args) -> warn<Args...>;
+  LOGZY_EXPORT warn(std::format_string<Args...> fmt, Args &&...args) -> warn<Args...>;
 
   template <typename... Args>
   LOGZY_EXPORT struct error {                             // NOLINT
@@ -113,7 +114,7 @@ namespace logzy {
     }
   };
   template <typename... Args>
-  error(std::format_string<Args...> fmt, Args &&...args) -> error<Args...>;
+  LOGZY_EXPORT error(std::format_string<Args...> fmt, Args &&...args) -> error<Args...>;
 
   template <typename... Args>
   LOGZY_EXPORT struct critical {                             // NOLINT
@@ -124,7 +125,7 @@ namespace logzy {
     }
   };
   template <typename... Args>
-  critical(std::format_string<Args...> fmt, Args &&...args)
+  LOGZY_EXPORT critical(std::format_string<Args...> fmt, Args &&...args)
       -> critical<Args...>;
 
   // TODO :: Make this apply only in debug builds
@@ -137,6 +138,6 @@ namespace logzy {
     }
   };
   template <typename... Args>
-  debug(std::format_string<Args...> fmt, Args &&...args) -> debug<Args...>;
+  LOGZY_EXPORT debug(std::format_string<Args...> fmt, Args &&...args) -> debug<Args...>;
 
 }  // namespace logzy

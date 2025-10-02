@@ -33,8 +33,15 @@ add_library(
     include/logzy/logzy.hpp
 )
 add_library(logzy::logzy ALIAS logzy_logzy)
-
 target_link_libraries(logzy_logzy PUBLIC rainbowcpp::rainbowcpp)
+
+# Required for std::print to work on widnows
+if(WIN32) 
+   target_link_libraries(logzy_logzy PUBLIC stdc++exp)
+endif()
+
+
+
 
 include(GenerateExportHeader)
 generate_export_header(

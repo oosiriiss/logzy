@@ -1,6 +1,6 @@
 #pragma once
-#include <cxxabi.h>
 
+#include <concepts>
 #include <format>
 #include <variant>
 
@@ -17,8 +17,13 @@ concept isFormattable = []() {
   return isValid;
 }();
 
-template <typename T>
-constexpr std::string typeName() {
+#ifdef _MSC_VER
+template <typename T> constexpr auto typeName() -> std::string {
+  return typeid(T).name();
+}
+#else
+#include <cxxabi.h>
+template <typename T> constexpr auto typeName() -> std::string {
   int status = -1;
   auto demangledName = std::string(
       abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status));
@@ -27,10 +32,10 @@ constexpr std::string typeName() {
   }
   return demangledName;
 }
-
+#endif
 template <typename T>
   requires isFormattable<T>
-struct std::formatter<std::optional<T>> {  // NOLINT
+struct std::formatter<std::optional<T>> { // NOLINT
 
   constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
 
@@ -44,7 +49,7 @@ struct std::formatter<std::optional<T>> {  // NOLINT
 
 template <typename... Ts>
   requires(isFormattable<Ts> && ...)
-struct std::formatter<std::variant<Ts...>> {  // NOLINT
+struct std::formatter<std::variant<Ts...>> { // NOLINT
 
   constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
 
