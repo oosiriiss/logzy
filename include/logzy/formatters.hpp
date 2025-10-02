@@ -1,6 +1,9 @@
 #pragma once
 
+#include <codecvt>
 #include <concepts>
+#include <cstddef>
+#include <filesystem>
 #include <format>
 #include <optional>
 #include <variant>
@@ -38,7 +41,8 @@ constexpr auto typeName() -> std::string {
 #endif
 template <typename T>
   requires isFormattable<T>
-struct std::formatter<std::optional<T>> {  // NOLINT
+struct std::formatter<std::optional<T>>
+    : std::formatter<std::string> {  // NOLINT
 
   constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
 
@@ -52,9 +56,8 @@ struct std::formatter<std::optional<T>> {  // NOLINT
 
 template <typename... Ts>
   requires(isFormattable<Ts> && ...)
-struct std::formatter<std::variant<Ts...>> {  // NOLINT
-
-  constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
+struct std::formatter<std::variant<Ts...>>
+    : std::formatter<std::string> {  // NOLINT
 
   auto format(const std::variant<Ts...> &variant,
               std::format_context &ctx) const {
@@ -67,5 +70,38 @@ struct std::formatter<std::variant<Ts...>> {  // NOLINT
                                 entry, variantIndex, typeName<T>());
         },
         variant);
+  }
+};
+
+//// Specific implementations defined in cpp
+// template <>
+// struct std::formatter<const wchar_t *> {
+//   constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin();
+//   }
+//
+//   auto format(const wchar_t *widestring, std::format_context &ctx) const {
+//     return std::format_to(ctx.out(), L"{}", widestring);
+//   }
+// };
+
+template <typename T>
+  requires std::convertible_to<T, std::basic_string_view<wchar_t>>
+struct std::formatter<T> {
+  constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
+
+  auto format(const T &str, std::format_context &ctx) const {
+    return std::format_to(ctx.out(), L"{}",
+                          std::basic_string_view<wchar_t>(str));
+  }
+};
+
+// Path with char value type
+template <>
+struct std::formatter<std::filesystem::path> {
+  constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
+
+  auto format(const std::filesystem::path &path,
+              std::format_context &ctx) const {
+    return std::format_to(ctx.out(), "{}", path.string());
   }
 };

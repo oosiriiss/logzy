@@ -1,4 +1,7 @@
+
+#include <filesystem>
 #include <optional>
+#include <string>
 #include <variant>
 
 #include "logzy/logzy.hpp"
@@ -8,7 +11,7 @@ struct SomeUnformattableStruct {
   int y;
 };
 
-int main() { // NOLINT(bugprone-exception-escape)
+int main() {  // NOLINT(bugprone-exception-escape)
   const std::optional<int> withValue = std::optional(1);
   const std::optional<int> noValue = std::nullopt;
 
@@ -29,6 +32,23 @@ int main() { // NOLINT(bugprone-exception-escape)
 
   // This will not compile
   // logzy::critical("Does pritning unformattable clas work {}", var2);
+
+  auto path = std::filesystem::path("/this/is/some/path");
+
+  logzy::info("path is: {}", path);
+
+  const wchar_t* wide = L"Hello";
+  logzy::info("Wide string: {}", wide);
+
+  std::wstring widestr = L"Hello Wide string";
+  logzy::warn("Wide string: {}", widestr);
+
+  std::wstring_view widesv = L"Hello Wide string view";
+  logzy::warn("Wide string view: {}", widesv);
+
+  std::println("wide string view {}", widestr);
+
+  logzy::info("Hello {}", std::string("Hello"));
 
   return 0;
 }
