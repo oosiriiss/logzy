@@ -1,20 +1,18 @@
 #pragma once
 
 #include <cstdint>
-#include <format>
 #include <print>
 #include <source_location>
 #include <string>
 
 #include "logzy/formatters.hpp"
 #include "logzy/logzy_export.hpp"
-
 #include "rainbowcpp/colors.hpp"
 #include "rainbowcpp/rainbowcpp.hpp"
 
 namespace logzy {
   namespace internal {
-    LOGZY_NO_EXPORT enum class LogLevel : std::uint8_t {
+    enum class LogLevel : std::uint8_t {
       Info,
       Warning,
       Error,
@@ -35,7 +33,7 @@ namespace logzy {
         case LogLevel::Critical:
           return "CRITICAL";
       }
-   std::unreachable();
+      std::unreachable();
     }
 
     constexpr std::string_view textColor(const LogLevel level) {
@@ -58,7 +56,7 @@ namespace logzy {
       std::unreachable();
     }
 
-    LOGZY_EXPORT std::string formatLogLevel(const LogLevel level) {
+    constexpr std::string formatLogLevel(const LogLevel level) {
       const std::string_view levelStr = toString(level);
       const std::string_view color = textColor(level);
       constexpr std::string_view reset = rainbow::reset();
@@ -67,10 +65,8 @@ namespace logzy {
     }
 
     template <typename... Args>
-    LOGZY_NO_EXPORT inline void log(LogLevel level,
-                                    const std::source_location sourceLoc,
-                                    std::format_string<Args...> fmt,
-                                    Args &&...args) {
+    inline void log(LogLevel level, const std::source_location sourceLoc,
+                    std::format_string<Args...> fmt, Args &&...args) {
       auto formattedLevel = formatLogLevel(level);
       auto message = std::format(fmt, std::forward<Args>(args)...);
 
@@ -84,7 +80,7 @@ namespace logzy {
   }  // namespace internal
 
   template <typename... Args>
-  LOGZY_EXPORT struct info {                             // NOLINT
+  struct info {                                          // NOLINT
     info(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
          std::source_location loc = std::source_location::current()) {
       internal::log(internal::LogLevel::Info, loc, fmt,
@@ -92,10 +88,10 @@ namespace logzy {
     }
   };
   template <typename... Args>
-  LOGZY_EXPORT info(std::format_string<Args...> fmt, Args &&...args) -> info<Args...>;
+  info(std::format_string<Args...> fmt, Args &&...args) -> info<Args...>;
 
   template <typename... Args>
-  LOGZY_EXPORT struct warn {                             // NOLINT
+  struct warn {                                          // NOLINT
     warn(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
          std::source_location loc = std::source_location::current()) {
       internal::log(internal::LogLevel::Warning, loc, fmt,
@@ -103,10 +99,10 @@ namespace logzy {
     }
   };
   template <typename... Args>
-  LOGZY_EXPORT warn(std::format_string<Args...> fmt, Args &&...args) -> warn<Args...>;
+  warn(std::format_string<Args...> fmt, Args &&...args) -> warn<Args...>;
 
   template <typename... Args>
-  LOGZY_EXPORT struct error {                             // NOLINT
+  struct error {                                          // NOLINT
     error(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
           std::source_location loc = std::source_location::current()) {
       internal::log(internal::LogLevel::Error, loc, fmt,
@@ -114,10 +110,10 @@ namespace logzy {
     }
   };
   template <typename... Args>
-  LOGZY_EXPORT error(std::format_string<Args...> fmt, Args &&...args) -> error<Args...>;
+  error(std::format_string<Args...> fmt, Args &&...args) -> error<Args...>;
 
   template <typename... Args>
-  LOGZY_EXPORT struct critical {                             // NOLINT
+  struct critical {                                          // NOLINT
     critical(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
              std::source_location loc = std::source_location::current()) {
       internal::log(internal::LogLevel::Critical, loc, fmt,
@@ -125,12 +121,12 @@ namespace logzy {
     }
   };
   template <typename... Args>
-  LOGZY_EXPORT critical(std::format_string<Args...> fmt, Args &&...args)
+  critical(std::format_string<Args...> fmt, Args &&...args)
       -> critical<Args...>;
 
   // TODO :: Make this apply only in debug builds
   template <typename... Args>
-  LOGZY_EXPORT struct debug {                             // NOLINT
+  struct debug {                                          // NOLINT
     debug(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
           std::source_location loc = std::source_location::current()) {
       internal::log(internal::LogLevel::Debug, loc, fmt,
@@ -138,6 +134,6 @@ namespace logzy {
     }
   };
   template <typename... Args>
-  LOGZY_EXPORT debug(std::format_string<Args...> fmt, Args &&...args) -> debug<Args...>;
+  debug(std::format_string<Args...> fmt, Args &&...args) -> debug<Args...>;
 
 }  // namespace logzy

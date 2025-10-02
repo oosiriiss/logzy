@@ -35,13 +35,11 @@ add_library(
 add_library(logzy::logzy ALIAS logzy_logzy)
 target_link_libraries(logzy_logzy PUBLIC rainbowcpp::rainbowcpp)
 
-# Required for std::print to work on widnows
-if(WIN32) 
-   target_link_libraries(logzy_logzy PUBLIC stdc++exp)
+
+# G++ 15.2.0 requiresthis for std::__write_to_terminal
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  target_link_libraries(logzy_logzy PRIVATE stdc++exp)
 endif()
-
-
-
 
 include(GenerateExportHeader)
 generate_export_header(
