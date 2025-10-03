@@ -20,8 +20,9 @@ FetchContent_Declare(
    GIT_REPOSITORY https://github.com/oosiriiss/rainbowcpp
    GIT_TAG 0.1
 )
-
 FetchContent_MakeAvailable(rainbowcpp)
+
+
 
 
 # ---- Declare library ----
@@ -76,6 +77,23 @@ target_include_directories(
 )
 
 target_compile_features(logzy_logzy PUBLIC cxx_std_23)
+
+# ---- Logzy options ---- 
+
+if(PROJECT_IS_TOP_LEVEL)
+
+   if(logzy_DEVELOPER_MODE) 
+      set(_DISABLE_LOGZY_DEBUG_LOG_DFAULT OFF)
+   else()
+      set(_DISABLE_LOGZY_DEBUG_LOG_DFAULT ON)
+   endif()
+
+   option(logzy_DISABLE_DEBUG_LOGS "Disable logzy::debug calls" "${_DISABLE_LOGZY_DEBUG_LOG_DFAULT}")
+   if(logzy_DISABLE_DEBUG_LOGS) 
+      add_compile_definitions(LOGZY_DISABLE_DEBUG_LOGS)
+   endif()
+endif()
+
 
 # ---- Install rules ----
 

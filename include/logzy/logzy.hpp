@@ -124,7 +124,16 @@ namespace logzy {
   critical(std::format_string<Args...> fmt, Args &&...args)
       -> critical<Args...>;
 
-  // TODO :: Make this apply only in debug builds
+#ifdef LOGZY_DISABLE_DEBUG_LOGS
+
+  template <typename... Args>
+  struct debug {      // NOLINT
+    constexpr debug(  // NOLINT
+        [[maybe_unused]] std::format_string<Args...> fmt,
+        [[maybe_unused]] Args &&...args) noexcept {}
+  };
+
+#else
   template <typename... Args>
   struct debug {                                          // NOLINT
     debug(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
@@ -135,5 +144,7 @@ namespace logzy {
   };
   template <typename... Args>
   debug(std::format_string<Args...> fmt, Args &&...args) -> debug<Args...>;
+
+#endif
 
 }  // namespace logzy
