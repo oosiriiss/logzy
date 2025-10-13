@@ -18,7 +18,7 @@ include(FetchContent)
 FetchContent_Declare(
    rainbowcpp
    GIT_REPOSITORY https://github.com/oosiriiss/rainbowcpp
-   GIT_TAG 0.1
+   GIT_TAG 0.2
 )
 FetchContent_MakeAvailable(rainbowcpp)
 
