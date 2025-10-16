@@ -22,11 +22,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(rainbowcpp)
 
-
-
-
-# ---- Declare library ----
-
 add_library(
     logzy_logzy
     source/logzy.cpp

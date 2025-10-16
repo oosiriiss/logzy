@@ -8,6 +8,33 @@
 #include <optional>
 #include <variant>
 
+#ifdef _MSC_VER
+
+#else
+#include <cxxabi.h>
+#endif
+
+namespace internal {
+#ifdef _MSC_VER
+  template <typename T>
+  constexpr auto typeName() -> std::string {
+    return typeid(T).name();
+  }
+#else
+  template <typename T>
+  constexpr auto typeName() -> std::string {
+    int status = -1;
+    auto demangledName = std::string(
+        abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status));
+    if (status != 0) {
+      return "Unknown";
+    }
+    return demangledName;
+  }
+#endif
+
+}  // namespace internal
+
 // TODO :: Helpful message if formatter is not found?
 
 template <typename T>
@@ -21,24 +48,6 @@ concept isFormattable = []() {
   return isValid;
 }();
 
-#ifdef _MSC_VER
-template <typename T>
-constexpr auto typeName() -> std::string {
-  return typeid(T).name();
-}
-#else
-#include <cxxabi.h>
-template <typename T>
-constexpr auto typeName() -> std::string {
-  int status = -1;
-  auto demangledName = std::string(
-      abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status));
-  if (status != 0) {
-    return "Unknown";
-  }
-  return demangledName;
-}
-#endif
 template <typename T>
   requires isFormattable<T>
 struct std::formatter<std::optional<T>>
@@ -67,22 +76,11 @@ struct std::formatter<std::variant<Ts...>>
           using T = std::decay_t<decltype(entry)>;
           return std::format_to(ctx.out(),
                                 "std::variant(value={}, idx={}, type={})",
-                                entry, variantIndex, typeName<T>());
+                                entry, variantIndex, internal::typeName<T>());
         },
         variant);
   }
 };
-
-//// Specific implementations defined in cpp
-// template <>
-// struct std::formatter<const wchar_t *> {
-//   constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin();
-//   }
-//
-//   auto format(const wchar_t *widestring, std::format_context &ctx) const {
-//     return std::format_to(ctx.out(), L"{}", widestring);
-//   }
-// };
 
 template <typename T>
   requires std::convertible_to<T, std::basic_string_view<wchar_t>>
