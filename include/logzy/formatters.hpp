@@ -24,12 +24,21 @@ namespace internal {
   template <typename T>
   constexpr auto typeName() -> std::string {
     int status = -1;
-    auto demangledName = std::string(
-        abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status));
-    if (status != 0) {
-      return "Unknown";
+
+    char *demangledName =
+        abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status);
+
+    std::string outName;
+
+    // Success
+    if (status == 0) {
+      outName = demangledName;
+
+      // Freeing allocated buffer
+      std::free(demangledName);
     }
-    return demangledName;
+
+    return outName;
   }
 #endif
 
