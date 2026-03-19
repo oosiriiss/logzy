@@ -13,23 +13,26 @@
 namespace logzy {
   namespace internal {
     enum class LogLevel : std::uint8_t {
+      Trace,
+      Debug,
       Info,
       Warning,
       Error,
-      Debug,
       Critical
     };
 
     constexpr std::string_view toString(const LogLevel level) {
       switch (level) {
+        case LogLevel::Trace:
+          return "TRACE";
+        case LogLevel::Debug:
+          return "DEBUG";
         case LogLevel::Info:
           return "INFO";
         case LogLevel::Warning:
           return "WARNING";
         case LogLevel::Error:
           return "ERROR";
-        case LogLevel::Debug:
-          return "DEBUG";
         case LogLevel::Critical:
           return "CRITICAL";
       }
@@ -41,6 +44,9 @@ namespace logzy {
       using Bg = rainbow::colors::bit4::Background;
 
       switch (level) {
+        case LogLevel::Trace:
+          return rainbow::color<rainbow::Color(64, 64, 64),  // NOLINT
+                                Bg::Default>();
         case LogLevel::Debug:
           return rainbow::color<Fg::Gray, Bg::Black>();
         case LogLevel::Info:
@@ -146,5 +152,16 @@ namespace logzy {
   debug(std::format_string<Args...> fmt, Args &&...args) -> debug<Args...>;
 
 #endif
+
+  template <typename... Args>
+  struct trace {                                          // NOLINT
+    trace(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
+          std::source_location loc = std::source_location::current()) {
+      internal::log(internal::LogLevel::Trace, loc, fmt,
+                    std::forward<Args>(ts)...);
+    }
+  };
+  template <typename... Args>
+  trace(std::format_string<Args...> fmt, Args &&...args) -> trace<Args...>;
 
 }  // namespace logzy
