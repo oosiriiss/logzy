@@ -1,9 +1,12 @@
 #pragma once
 
+#include <concepts>
 #include <cstdint>
 #include <print>
 #include <source_location>
 #include <string>
+#include <type_traits>
+#include <utility>
 
 #include "logzy/formatters.hpp"
 #include "logzy/logzy_export.hpp"
@@ -12,13 +15,14 @@
 
 namespace logzy {
   namespace internal {
+
     enum class LogLevel : std::uint8_t {
-      Trace,
-      Debug,
-      Info,
-      Warning,
-      Error,
-      Critical
+      Trace = 0,
+      Debug = 1,
+      Info = 2,
+      Warning = 3,
+      Error = 4,
+      Critical = 5
     };
 
     constexpr std::string_view toString(const LogLevel level) {
@@ -83,85 +87,67 @@ namespace logzy {
       std::println("{} {}({}:{}) | {}", formattedLevel, filename,
                    sourceLoc.line(), sourceLoc.column(), message);
     }
+
+    template <typename... Args>
+    struct log_meta {  // NOLINT(readability-identifier-naming)
+      std::format_string<Args...> fmt;
+      std::source_location loc;
+
+      template <typename StringType>
+        requires std::is_constructible_v<std::format_string<Args...>,
+                                         StringType>
+      consteval log_meta(  // NOLINT(google-explicit-constructor,hicpp-explicit-conversions)
+          StringType fmt,
+          std::source_location loc = std::source_location::current()) noexcept
+          : fmt{fmt},
+            loc{loc} {}
+    };
+
+    template <LogLevel Level, typename... Args>
+    constexpr void basicLog(log_meta<Args...> format, Args &&...args) {
+      internal::log(Level, format.loc, format.fmt, std::forward<Args>(args)...);
+    }
+
   }  // namespace internal
 
   template <typename... Args>
-  struct info {                                          // NOLINT
-    info(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
-         std::source_location loc = std::source_location::current()) {
-      internal::log(internal::LogLevel::Info, loc, fmt,
-                    std::forward<Args>(ts)...);
-    }
-  };
-  template <typename... Args>
-  info(std::format_string<Args...> fmt, Args &&...args) -> info<Args...>;
+
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  using log_format = std::type_identity_t<internal::log_meta<Args...>>;
 
   template <typename... Args>
-  struct warn {                                          // NOLINT
-    warn(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
-         std::source_location loc = std::source_location::current()) {
-      internal::log(internal::LogLevel::Warning, loc, fmt,
-                    std::forward<Args>(ts)...);
-    }
-  };
-  template <typename... Args>
-  warn(std::format_string<Args...> fmt, Args &&...args) -> warn<Args...>;
+  constexpr void trace(log_format<Args...> format, Args &&...args) {
+    internal::basicLog<internal::LogLevel::Trace, Args...>(
+        format, std::forward<Args>(args)...);
+  }
 
   template <typename... Args>
-  struct error {                                          // NOLINT
-    error(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
-          std::source_location loc = std::source_location::current()) {
-      internal::log(internal::LogLevel::Error, loc, fmt,
-                    std::forward<Args>(ts)...);
-    }
-  };
-  template <typename... Args>
-  error(std::format_string<Args...> fmt, Args &&...args) -> error<Args...>;
+  constexpr void debug(log_format<Args...> format, Args &&...args) {
+    internal::basicLog<internal::LogLevel::Debug, Args...>(
+        format, std::forward<Args>(args)...);
+  }
 
   template <typename... Args>
-  struct critical {                                          // NOLINT
-    critical(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
-             std::source_location loc = std::source_location::current()) {
-      internal::log(internal::LogLevel::Critical, loc, fmt,
-                    std::forward<Args>(ts)...);
-    }
-  };
-  template <typename... Args>
-  critical(std::format_string<Args...> fmt, Args &&...args)
-      -> critical<Args...>;
-
-#ifdef LOGZY_DISABLE_DEBUG_LOGS
+  constexpr void info(log_format<Args...> format, Args &&...args) {
+    internal::basicLog<internal::LogLevel::Info, Args...>(
+        format, std::forward<Args>(args)...);
+  }
 
   template <typename... Args>
-  struct debug {      // NOLINT
-    constexpr debug(  // NOLINT
-        [[maybe_unused]] std::format_string<Args...> fmt,
-        [[maybe_unused]] Args &&...args) noexcept {}
-  };
-
-#else
-  template <typename... Args>
-  struct debug {                                          // NOLINT
-    debug(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
-          std::source_location loc = std::source_location::current()) {
-      internal::log(internal::LogLevel::Debug, loc, fmt,
-                    std::forward<Args>(ts)...);
-    }
-  };
-  template <typename... Args>
-  debug(std::format_string<Args...> fmt, Args &&...args) -> debug<Args...>;
-
-#endif
+  constexpr void warn(log_format<Args...> format, Args &&...args) {
+    internal::basicLog<internal::LogLevel::Warning, Args...>(
+        format, std::forward<Args>(args)...);
+  }
 
   template <typename... Args>
-  struct trace {                                          // NOLINT
-    trace(std::format_string<Args...> fmt, Args &&...ts,  // NOLINT
-          std::source_location loc = std::source_location::current()) {
-      internal::log(internal::LogLevel::Trace, loc, fmt,
-                    std::forward<Args>(ts)...);
-    }
-  };
-  template <typename... Args>
-  trace(std::format_string<Args...> fmt, Args &&...args) -> trace<Args...>;
+  constexpr void error(log_format<Args...> format, Args &&...args) {
+    internal::basicLog<internal::LogLevel::Error, Args...>(
+        format, std::forward<Args>(args)...);
+  }
 
+  template <typename... Args>
+  constexpr void critical(log_format<Args...> format, Args &&...args) {
+    internal::basicLog<internal::LogLevel::Critical, Args...>(
+        format, std::forward<Args>(args)...);
+  }
 }  // namespace logzy

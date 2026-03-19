@@ -23,6 +23,5 @@ endfunction()
 
 add_example(basic_logging_example)
 add_example(formatters_example)
-add_example(debug_log_disable)
 
 add_folders(Example)
