@@ -25,6 +25,25 @@ namespace logzy {
       Critical = 5
     };
 
+    constexpr LogLevel
+        COMP_MIN_LOG_LEVEL =  //  NOLINT(readability-identifier-naming)
+#if defined(LOGZY_MIN_TRACE)
+        LogLevel::Trace;
+#elif defined(LOGZY_MIN_DEBUG)
+        LogLevel::Debug;
+#elif defined(LOGZY_MIN_INFO)
+        LogLevel::Info;
+#elif defined(LOGZY_MIN_WARNING)
+        LogLevel::Warning;
+#elif defined(LOGZY_MIN_ERROR)
+        LogLevel::Error;
+#elif defined(LOGZY_MIN_CRITICAL)
+        LogLevel::Critical;
+#else
+#define LOGZY_MIN_DEBUG
+        LogLevel::Trace;
+#endif
+
     constexpr std::string_view toString(const LogLevel level) {
       switch (level) {
         case LogLevel::Trace:
@@ -105,7 +124,11 @@ namespace logzy {
 
     template <LogLevel Level, typename... Args>
     constexpr void basicLog(log_meta<Args...> format, Args &&...args) {
-      internal::log(Level, format.loc, format.fmt, std::forward<Args>(args)...);
+      if constexpr (std::to_underlying(Level) >=
+                    std::to_underlying(COMP_MIN_LOG_LEVEL)) {
+        internal::log(Level, format.loc, format.fmt,
+                      std::forward<Args>(args)...);
+      }
     }
 
   }  // namespace internal

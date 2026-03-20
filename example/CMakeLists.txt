@@ -23,5 +23,6 @@ endfunction()
 
 add_example(basic_logging_example)
 add_example(formatters_example)
+add_example(compile_time_min_log_level)
 
 add_folders(Example)
