@@ -9,7 +9,6 @@
 #include <utility>
 
 #include "logzy/formatters.hpp"
-#include "logzy/logzy_export.hpp"
 #include "rainbowcpp/colors.hpp"
 #include "rainbowcpp/rainbowcpp.hpp"
 
