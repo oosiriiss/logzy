@@ -16,6 +16,6 @@ function(add_example NAME)
   # target_link_libraries("${NAME}" PRIVATE rainbowcpp::rainbowcpp)
 endfunction()
 
-add_example(basic_logging_example)
+add_example(general_example)
 add_example(formatters_example)
 add_example(compile_time_min_log_level)
