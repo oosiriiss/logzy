@@ -1,8 +1,7 @@
 #pragma once
 
 #include <format>
-#include <optional>
-#include <print>
+#include <iostream>
 #include <rainbowcpp/rainbowcpp.hpp>
 #include <source_location>
 #include <string_view>
@@ -96,8 +95,10 @@ namespace logzy {
       }
     }
 
-    std::println("{} {}({}:{}) | {}", formattedLevel, fileName,
-                 sourceLoc.line(), sourceLoc.column(), message);
+    std::cout << formattedLevel << ' ';
+    std::cout << fileName << '(' << sourceLoc.line() << ','
+              << sourceLoc.column() << ") | ";
+    std::cout << message << '\n';
   }
 
   constexpr std::string_view Logger::textColor(const LogLevel level) {
@@ -128,7 +129,17 @@ namespace logzy {
     const std::string_view color = textColor(level);
     constexpr std::string_view reset = rainbow::reset();
 
-    // TODO :: std::format is overkill for this
-    return std::format("{}[{}]{}", color, levelStr, reset);
+    std::string buffer;
+    constexpr size_t safetyBuffer = 8;
+    buffer.reserve(levelStr.length() + color.length() + reset.length() +
+                   safetyBuffer);
+
+    buffer += color;
+    buffer.push_back('[');
+    buffer += levelStr;
+    buffer.push_back(']');
+    buffer += reset;
+
+    return buffer;
   }
 }  // namespace logzy
