@@ -87,6 +87,8 @@ CheckOptions:
     value: 'camelBack'
   - key: 'readability-identifier-naming.GlobalVariableCase'
     value: 'camelBack'
+  - key: 'readability-identifier-naming.GlobalVariablePrefix'
+    value: 'g_'
   - key: 'readability-identifier-naming.InlineNamespaceCase'
     value: 'camelBack'
   - key: 'readability-identifier-naming.LocalConstantCase'
