@@ -22,11 +22,15 @@ namespace logzy {
 
   }  // namespace internal
 
+  [[nodiscard]] constexpr auto getLogger() -> Logger& {
+    return internal::g_logger;
+  }
+
 #define FORWARD_GLOBAL_LOGGER_METHOD(/*NOLINT(cppcoreguidelines-macro-usage)*/ \
                                      GLOBAL_METHOD_NAME, LOGGER_METHOD_NAME)   \
   template <typename... Args>                                                  \
   constexpr void GLOBAL_METHOD_NAME(log_format<Args...> format,                \
-                                    Args &&...args) {                          \
+                                    Args&&... args) {                          \
     internal::g_logger.LOGGER_METHOD_NAME<Args...>(                            \
         format, std::forward<Args>(args)...);                                  \
   }

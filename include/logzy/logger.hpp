@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format>
+#include <optional>
 #include <print>
 #include <rainbowcpp/rainbowcpp.hpp>
 #include <source_location>
@@ -9,6 +10,7 @@
 #include <utility>
 
 #include "log_level.hpp"
+#include "logzy/filter.hpp"
 
 namespace logzy {
 
@@ -59,29 +61,42 @@ namespace logzy {
 
     [[nodiscard]] static constexpr auto formatLogLevel(LogLevel level)
         -> std::string;
+
+    std::unique_ptr<LogFilter> filter{nullptr};
   };
 
 #undef LOG_METHOD
 
   template <LogLevel Level, typename... Args>
   inline void Logger::log(log_format<Args...> format, Args&&... args) {
-    if constexpr (std::to_underlying(Level) >=
+    if constexpr (std::to_underlying(Level) <
                   std::to_underlying(internal::COMP_MIN_LOG_LEVEL)) {
-      log(Level, format.loc, format.fmt, std::forward<Args>(args)...);
+      return;
     }
+
+    log(Level, format.loc, format.fmt, std::forward<Args>(args)...);
   }
 
   template <typename... Args>
   inline void Logger::log(LogLevel level, const std::source_location& sourceLoc,
                           std::format_string<Args...> fmt, Args&&... args) {
-    auto formattedLevel = formatLogLevel(level);
-    auto message = std::format(fmt, std::forward<Args>(args)...);
+    const auto formattedLevel = formatLogLevel(level);
+    const auto message = std::format(fmt, std::forward<Args>(args)...);
 
     // FIXME :: Possible slowdown?
     const auto filePath = std::string_view(sourceLoc.file_name());
-    const auto filename = filePath.substr(filePath.find_last_of('/') + 1);
+    const auto fileName = filePath.substr(filePath.find_last_of('/') + 1);
 
-    std::println("{} {}({}:{}) | {}", formattedLevel, filename,
+    if (filter != nullptr) {
+      const bool messagePassedFilters = filter->filterFile(fileName) &&
+                                        filter->filterLevel(level) &&
+                                        filter->filterMessage(message);
+      if (!messagePassedFilters) {
+        return;
+      }
+    }
+
+    std::println("{} {}({}:{}) | {}", formattedLevel, fileName,
                  sourceLoc.line(), sourceLoc.column(), message);
   }
 

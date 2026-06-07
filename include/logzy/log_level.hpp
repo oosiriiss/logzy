@@ -36,6 +36,8 @@ namespace logzy {
         LogLevel::Trace;
 #endif
 
+    // TODO :: Implement std::formatter for LogLevel
+
     constexpr std::string_view toString(const LogLevel level) {
       switch (level) {
         case LogLevel::Trace:
